@@ -98,6 +98,7 @@ var phantomPathDeprecatedFn = util.deprecate(function () {}, "Deprecated 'phanto
 
 
 exports.create = function (options, callback) {
+  var phantom_pid;
   if (callback && Object.prototype.toString.call(options) === '[object Function]') {
     createDeprecatedFn();
 
@@ -181,7 +182,7 @@ exports.create = function (options, callback) {
         return;
       }
 
-      var phantom_pid = parseInt(matches[1], 0);
+      phantom_pid = parseInt(matches[1], 0);
 
       // Now need to figure out what port it's listening on - since
       // Phantom is busted and can't tell us this we need to use lsof on mac, and netstat on Linux
@@ -563,7 +564,7 @@ exports.create = function (options, callback) {
       }
     };
 
-    callback(null, proxy);
+    callback(null, proxy, phantom_pid);
   });
 };
 
