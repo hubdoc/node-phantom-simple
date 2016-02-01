@@ -413,7 +413,7 @@ exports.create = function (options, callback) {
       return page;
     };
 
-    var poll_func = setup_long_poll(phantom, port, pages, setup_new_page);
+    var poll_func = setup_long_poll(phantom, port, pages, setup_new_page, phantom_pid);
 
     var request_queue = queue(function (paramarr, next) {
       var params = paramarr[0];
@@ -569,13 +569,15 @@ exports.create = function (options, callback) {
 };
 
 
-function setup_long_poll (phantom, port, pages, setup_new_page) {
+function setup_long_poll (phantom, port, pages, setup_new_page, phantom_pid) {
   var http_opts = {
     hostname: 'localhost',
     port: port,
     path: '/',
     method: 'GET'
   };
+
+  var req_counter = 0;
 
   var dead = false;
   phantom.once('exit', function () { dead = true; });
@@ -591,8 +593,14 @@ function setup_long_poll (phantom, port, pages, setup_new_page) {
       return;
     }
 
+    http_opts.headers = {
+      'x-req-counter': phantom_pid + ':' + (++req_counter)
+    }
+
+    logger.debug('Bridge request sent ' + http_opts.headers['x-req-counter']);
     var req = http.get(http_opts, function(res) {
       res.setEncoding('utf8');
+      logger.debug('Bridge response received ' + res.headers['x-req-counter']);
       var data = '';
       res.on('data', function (chunk) {
         data += chunk;
