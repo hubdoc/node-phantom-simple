@@ -597,7 +597,6 @@ function setup_long_poll (phantom, port, pages, setup_new_page, phantom_pid) {
       'x-req-counter': phantom_pid + ':' + (++req_counter)
     }
 
-    logger.debug('Bridge request sent ' + http_opts.headers['x-req-counter']);
     phantom.GETTING = true;
 
     var req = http.get(http_opts, function(res) {

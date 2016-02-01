@@ -100,7 +100,6 @@ webserver.listen('127.0.0.1:0', function (req, res) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('x-req-counter', req.headers['x-req-counter']);
-    console.log('Bridge response sent ' + req.headers['x-req-counter']);
     res.write(JSON.stringify({ data: callback_stack }));
     callback_stack = [];
     res.close();
