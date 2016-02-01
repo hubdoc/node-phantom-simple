@@ -588,7 +588,7 @@ function setup_long_poll (phantom, port, pages, setup_new_page, phantom_pid) {
       return;
     }
 
-    if (phantom.POSTING) {
+    if (phantom.POSTING || phantom.GETTING) {
       cb();
       return;
     }
@@ -598,6 +598,8 @@ function setup_long_poll (phantom, port, pages, setup_new_page, phantom_pid) {
     }
 
     logger.debug('Bridge request sent ' + http_opts.headers['x-req-counter']);
+    phantom.GETTING = true;
+
     var req = http.get(http_opts, function(res) {
       res.setEncoding('utf8');
       logger.debug('Bridge response received ' + res.headers['x-req-counter']);
@@ -606,6 +608,7 @@ function setup_long_poll (phantom, port, pages, setup_new_page, phantom_pid) {
         data += chunk;
       });
       res.on('end', function () {
+        phantom.GETTING = false;
         var results;
 
         if (dead) {
