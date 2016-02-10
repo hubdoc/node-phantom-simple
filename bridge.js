@@ -28,10 +28,12 @@ phantom.onError = function (msg, trace) {
 
 var watchdog_timer_id = null;
 
-// Kill phantom if parent disconnected
 function watchdog_clear() {
   clearTimeout(watchdog_timer_id);
+}
 
+// Kill phantom if parent disconnected
+function watchdog_set() {
   watchdog_timer_id = setTimeout(function () {
     phantom.exit(0);
   }, WATCHDOG_TIMEOUT);
@@ -71,6 +73,7 @@ function page_open (res, page, args) {
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify({ data: success }));
     res.close();
+    watchdog_set();
   }));
 }
 
@@ -88,11 +91,12 @@ function include_js (res, page, args) {
         page.onError(e);
       }
     }
+    watchdog_set();
   }));
 }
 
 webserver.listen('127.0.0.1:0', function (req, res) {
-  // Update watchdog timer on every request
+  // Clear watchdog timer on every request
   watchdog_clear();
 
   if (req.method === 'GET') {
@@ -101,6 +105,7 @@ webserver.listen('127.0.0.1:0', function (req, res) {
     res.write(JSON.stringify({ data: callback_stack }));
     callback_stack = [];
     res.close();
+    watchdog_set();
   } else if (req.method === 'POST') {
     var request, error, output;
 
@@ -139,7 +144,9 @@ webserver.listen('127.0.0.1:0', function (req, res) {
       res.statusCode = 200;
       res.write(JSON.stringify({ data: output }));
     }
-    res.close();
+      res.close();
+      watchdog_set();
+
   } else {
     throw 'Unknown request type!';
   }
@@ -250,7 +257,7 @@ var global_methods = {
 };
 
 // Start watchdog timer
-watchdog_clear();
+watchdog_set();
 
 /*eslint-disable no-console*/
 console.log('Ready [' + system.pid + '] [' + webserver.port + ']');
