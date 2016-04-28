@@ -35,6 +35,7 @@ function watchdog_clear() {
 // Kill phantom if parent disconnected
 function watchdog_set() {
   watchdog_timer_id = setTimeout(function () {
+    console.log('watchdog timeout firing for pid: ' + system.pid);
     phantom.exit(0);
   }, WATCHDOG_TIMEOUT);
 }
@@ -68,7 +69,9 @@ function lookup(obj, key, value) {
 }
 
 function page_open (res, page, args) {
+  console.log('bridge: about to open');
   page.open.apply(page, args.concat(function (success) {
+    console.log('bridge: returned from open');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify({ data: success }));
