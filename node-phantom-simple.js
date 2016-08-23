@@ -125,6 +125,7 @@ exports.create = function (options, callback) {
   if (typeof options.parameters === 'undefined') { options.parameters = {}; }
 
   function spawnPhantom (callback) {
+    logger.debug('in spawnPhantom');
     var args = [];
 
     if (Array.isArray(options.parameters)) {
@@ -157,6 +158,7 @@ exports.create = function (options, callback) {
     phantom.once('exit', immediateExit);
 
     // Wait for 'Ready' line
+    logger.debug('listening for ready line');
     phantom.stdout.once('data', function (data) {
       // setup normal listener now
       phantom.stdout.on('data', function (data) {
@@ -170,6 +172,8 @@ exports.create = function (options, callback) {
         callback(new HeadlessError('Unexpected output from PhantomJS: ' + data));
         return;
       }
+
+      logger.debug('got ready line');
 
       phantom.removeListener('exit', immediateExit);
 
@@ -234,12 +238,15 @@ exports.create = function (options, callback) {
       // around this bug in libuv: https://github.com/joyent/libuv/issues/962
       // - this is only necessary when using cluster, but it's here regardless
       var my_pid_command = cmd.replace(/%d/g, process.pid);
-
+      logger.debug('about to call exec 1');
       exec(my_pid_command, function (err, stdout /*, stderr*/) {
+        logger.debug('returned from exec 1 before err');
         if (err !== null) {
           // This can happen if grep finds no matching lines, so ignore it.
           stdout = '';
         }
+
+        logger.debug('returned from exec 1');
 
         var re = /(?:127\.\d{1,3}\.\d{1,3}\.\d{1,3}|localhost):(\d+)/ig, match;
         var ports = [];
@@ -250,12 +257,15 @@ exports.create = function (options, callback) {
 
         var phantom_pid_command = cmd.replace(/%d/g, phantom_pid);
 
+        logger.debug('about to call exec 2');
         exec(phantom_pid_command, function (err, stdout /*, stderr*/) {
+          logger.debug('return from exec 2 before error check');
           if (err !== null) {
             phantom.kill();
             callback(new HeadlessError('Error executing command to extract phantom ports: ' + err));
             return;
           }
+          logger.debug('return from exec 2');
 
           var port;
 
@@ -278,10 +288,13 @@ exports.create = function (options, callback) {
   }
 
   spawnPhantom(function (err, phantom, port) {
+    logger.debug('return from spawnPhantom before error check');
     if (err) {
       callback(err);
       return;
     }
+
+    logger.debug('return from spawnPhantom');
 
     var pages = {};
 
@@ -563,7 +576,7 @@ exports.create = function (options, callback) {
         phantom.on.apply(phantom, arguments);
       }
     };
-
+    logger.debug('about to call spawnPhantom callback');
     callback(null, proxy, phantom_pid);
   });
 };
