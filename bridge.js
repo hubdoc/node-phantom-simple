@@ -69,9 +69,7 @@ function lookup(obj, key, value) {
 }
 
 function page_open (res, page, args) {
-  console.log('bridge: about to open');
   page.open.apply(page, args.concat(function (success) {
-    console.log('bridge: returned from open');
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify({ data: success }));
